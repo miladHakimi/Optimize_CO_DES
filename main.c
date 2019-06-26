@@ -58,11 +58,12 @@ int predict(int *inputs)
 	//Profiling.4.start
 	for (i = 0; i < 6; i++)
 	{
-		nOut2[i] = 0;
+		temp1 = 0;
 		for (j = 0; j < 10; j++)
-			nOut2[i] += W2[j][i] * nOut1[j];	//MAC Instruction
-		nOut2[i] /= scaleFactor;
-		nOut2[i] += B2[i] ;
+			temp1 += W2[j][i] * nOut1[j];	//MAC Instruction
+		temp1 /= scaleFactor;
+		temp1 += B2[i] ;
+		nOut2[i] = temp1;
 	}
 	//Profiling.4.end
 	//Output Determination According to Maximum Value Position
