@@ -42,6 +42,7 @@ int predict(int *inputs)
 	long long int temp1=0;
 	//First Layer
 	//Profiling.3.start
+	// todo: change matrix
 	for (i = 0; i < 10; i++)
 	{
 		temp1 = 0;
@@ -68,12 +69,13 @@ int predict(int *inputs)
 	//Profiling.4.end
 	//Output Determination According to Maximum Value Position
 	res = nOut2[0];
-	for (i = 1; i < 6; i++)
-		if (nOut2[i] > res)
-		{
-			res = nOut2[i];
-			p = i;
-		}
+
+	for (i = 1; i < 6; i++){
+		temp1 = nOut2[i];
+		p = (temp1>res)*i + (temp1<=res)*p;
+		res = (temp1>res)*temp1 + (temp1<=res)*res;
+	}
+		
 	return p + 1;
 }
 //Profiling.2.end
@@ -82,11 +84,9 @@ int main(int argc, char *argv[])
 {
 	int c = 0,i;
 	double total_time;
-    // t = clock(); 
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
-	//time count starts 
-	// srand(time(NULL));
+
 	for (i = 0; i < 100; i++)
 		//Profiling.5.start
 		if (predict(data[i]) == labels[i])		//Comparing MLP Outputs and Targets
@@ -94,15 +94,10 @@ int main(int argc, char *argv[])
 		//Profiling.5.end
 
 	gettimeofday(&tv2, NULL);
-    // t = clock() - t; 
-    // double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds 
     printf ("Total time = %f seconds\n",
          (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 );
 
-
 	printf("CCR: %d\n", c);
-	//time count stops 
-	//calulate total time
 	return 0;
 }
 
