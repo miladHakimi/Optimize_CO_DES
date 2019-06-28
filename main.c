@@ -14,26 +14,30 @@
 // Profiling.1.start
 long long int sigmoid(long long int x)
 {
-
+	if(x>20000)
+		return 30136;
+	if(x<-100000)
+		return 0;
 	int i;
-
 	long long int scalefactor = 1 << 15;
 	x = -x;
-	long long int y = 1 * scalefactor;
-	long long int temp = 1 * scalefactor;
+	long long int y = scalefactor;
+	long long int a = 1 << 30;
+
+	long long int temp = scalefactor;
 	for (i = 1; i < 100; i++)
 	{
-		temp = (temp * x) / scalefactor;
+		temp = (temp * x) >> 15;
 		temp /= i;
 		y += temp;
 	}
-	y = scalefactor * scalefactor / (scalefactor + y);
+	y = a / (scalefactor + y);
 	return y;
 }
 //Profiling.1.end
 
 //Profiling.2.start
-int predict(int *inputs, long long int temp2[10][128])
+int predict(int *inputs)
 {
 	int scaleFactor = 1 << 15, p = 0;
 	int i,j,res;
@@ -48,10 +52,10 @@ int predict(int *inputs, long long int temp2[10][128])
 		temp1 = 0;
 		for (j = 0; j < 128; j++){
 			//Profiling.6.start
-			temp1 += temp2[i][j] * inputs[j];	//MAC Instruction
+			temp1 += W1[j][i] * inputs[j];	//MAC Instruction
 		}
 
-		temp1 = temp1 / scaleFactor;
+		temp1 = temp1 >> 15;
 		temp1 += B1[i];
 		nOut1[i] = sigmoid(temp1);			//Activation Function
 	}
@@ -63,12 +67,12 @@ int predict(int *inputs, long long int temp2[10][128])
 		temp1 = 0;
 		for (j = 0; j < 10; j++)
 			temp1 += W2[j][i] * nOut1[j];	//MAC Instruction
-		temp1 /= scaleFactor;
+		temp1 = temp1 >> 15;
 		temp1 += B2[i] ;
 		nOut2[i] = temp1;
 	}
 	//Profiling.4.end
-	//Output Determination According to Maximum Value Position
+	//Output Determination According to Maximum Value Position 
 	res = nOut2[0];
 
 	for (i = 1; i < 6; i++){
@@ -87,14 +91,9 @@ int main(int argc, char *argv[])
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 	
-	long long int temp2[10][128];
-	for (i = 0; i < 128; ++i)
-		for (j = 0; j < 10; ++j)
-			temp2[j][i] = W1[i][j];
-	
-	for (i = 0; i < 10000; i++)
+	for (i = 0; i < 100; i++)
 		//Profiling.5.start
-		if (predict(data[i%100], temp2) == labels[i%100])		//Comparing MLP Outputs and Targets
+		if (predict(data[i]) == labels[i])		//Comparing MLP Outputs and Targets
 			c++;
 		//Profiling.5.end
 
@@ -103,6 +102,12 @@ int main(int argc, char *argv[])
          (double) (tv2.tv_usec - tv1.tv_usec) / 1000 );
 
 	printf("CCR: %d\n", c);
+	// for (unsigned int i = 50000; i < 80000; i+=100)
+	// {
+		long long int a = sigmoid(-200000);
+		printf(" i =: %d %lld\n", i, a);
+	// }
+
 	return 0;
 }
 
